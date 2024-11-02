@@ -1,0 +1,1409 @@
+{
+	"info": {
+		"_postman_id": "0b8ae0ff-86e0-474a-b2f2-dab0b152b688",
+		"name": "Restful-Booker Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27399888"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Generate Auth Token & ResponseTime",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"POST request response time is less than 300ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);",
+									"});",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.token).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Token is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.token).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Token should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.environment.set(\"authToken\", response.token);",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth"
+							]
+						},
+						"description": "### Authentication Token Generation - Test Documentation\n\n#### Test Case: Generate Authentication Token\n\n- **Objective**: Ensure that the API successfully generates an authentication token when valid credentials are supplied.\n    \n- **Request Type**: `POST`\n    \n- **Endpoint**: `/auth` (or the relevant authentication endpoint for your API)\n    \n\n#### Request Example\n\n- **Request Type**: `POST`\n    \n- **Endpoint**: `/auth`\n    \n\n**Request Body**\n\n{  \n\"username\": \"admin\",  \n\"password\": \"password123\"  \n}  \n**Expected Response**\n\nUpon sending the request with valid credentials, the API should return:\n\n- **Status Code**: `200 OK`\n    \n\n**Response Body**\n\n{  \n\"token\": \"08085dd3c554630\"  \n}\n\n### Performance Test Documentation for `POST /booking`\n\n**Test**: Response time for `POST /booking` endpoint should be less than 300ms.\n\n- **Request**: `POST /booking`\n    \n- **Expected Result**: The response time should be less than 300ms.\n    \n\n**Actual Result**:\n\n- **Response Time**: Passed (response time was below 300ms)"
+					},
+					"response": []
+				},
+				{
+					"name": "Test Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body has the required field - reason\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.have.property('reason');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Reason field is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData.reason).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Reason field should not be empty\");",
+									"});",
+									"",
+									"pm.test(\"Response includes specific header X-Auth-Token\", function () {",
+									"    pm.response.to.have.header(\"X-Auth-Token\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth"
+							]
+						},
+						"description": "### Invalid Credentials - Test Documentation\n\n#### Description\n\nThis test checks the API’s response when an authentication request is made with invalid credentials. The expected behavior is for the API to return a `401 Unauthorized` status, along with a specific error message in the response body and to not include the `X-Auth-Token` header.\n\n#### Test Case: Authentication with Invalid Credentials\n\n- **Objective**: Verify that the API returns a `401 Unauthorized` response, provides a clear reason for the failure, and does not include the `X-Auth-Token` header when invalid credentials are supplied.\n    \n- **Request Type**: `POST`\n    \n- **Endpoint**: `/auth` (or the relevant authentication endpoint for your API)\n    \n\n#### Request Example\n\n- **Request Type**: `POST`\n    \n- **Endpoint**: `/auth`\n    \n\n**Request Body**\n\n{  \n\"username\": \"admin\",  \n\"password\": \"password\"  \n}\n\n**Response Body**\n\n{  \n\"reason\": \"Bad credentials\"  \n}"
+					},
+					"response": []
+				},
+				{
+					"name": "Test Token Expiration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.firstname).to.exist;",
+									"    pm.expect(responseData.lastname).to.exist;",
+									"    pm.expect(responseData.totalprice).to.exist;",
+									"    pm.expect(responseData.depositpaid).to.exist;",
+									"    pm.expect(responseData.bookingdates).to.exist;",
+									"    pm.expect(responseData.additionalneeds).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Checkin and checkout dates are in a valid date format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"    pm.expect(responseData.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Depositpaid is a boolean value\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.depositpaid).to.be.a('boolean');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Protected Endpoints",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 403\", function () {",
+									"    pm.expect(pm.response.code).to.equal(403);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response content type is text/plain\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/plain\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body contains the message 'Forbidden'\", function () {",
+									"    const responseData = pm.response.text();",
+									"    ",
+									"    pm.expect(responseData).to.include(\"Forbidden\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/booking/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"1"
+							]
+						},
+						"description": "### Testing Protected Endpoints Documentation\n\n**Objective**: To verify the access control of protected endpoints in the Restful-Booker API and ensure that appropriate responses are returned when access is attempted with insufficient permissions or invalid tokens.\n\n#### Test Case: DELETE /booking/{id}\n\n**Endpoint**: `DELETE {{baseURL}}/booking/1`\n\n**Authorization**:\n\n- **Type**: Basic Auth\n    \n- **Username**: `admin`\n    \n- **Password**: `password123`\n    \n\n**Preconditions**:\n\n- A valid authentication token is required to perform this operation.\n    \n- The token must have sufficient permissions to delete the specified booking.\n    \n\n**Expected Response**:\n\n- Status Code: `403 Forbidden`\n    \n- Reason: The request should be rejected because the user does not have sufficient permissions to delete the booking."
+					},
+					"response": []
+				}
+			],
+			"description": "This test verifies the API's ability to generate an authentication token when valid credentials are provided. The expected behavior is for the API to return a `200 OK` status, along with a valid token in the response body."
+		},
+		{
+			"name": "Booking CRUD",
+			"item": [
+				{
+					"name": "Handle concurrent modifications",
+					"item": [
+						{
+							"name": "PUT_Request",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const bookingId = 2; ",
+											"",
+											"// Request 1",
+											"pm.sendRequest({",
+											"    url: `https://restful-booker.herokuapp.com/booking/${bookingId}`,",
+											"    method: 'PUT',",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"        \"Authorization\": \"Basic <Base64Encoded(admin:password)>\"",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({",
+											"    \"firstname\": \"Mark\",",
+											"    \"lastname\": \"Jones\",",
+											"    \"totalprice\": 376,",
+											"    \"depositpaid\": false,",
+											"    \"bookingdates\": {",
+											"        \"checkin\": \"2020-09-22\",",
+											"        \"checkout\": \"2022-10-17\"",
+											"    },",
+											"    \"additionalneeds\": \"Breakfast\"",
+											"})",
+											"    }",
+											"}, function (err, res) {",
+											"    console.log(\"Response from request 1:\", res);",
+											"});",
+											"",
+											"// Request 2",
+											"pm.sendRequest({",
+											"    url: `https://restful-booker.herokuapp.com/booking/${bookingId}`,",
+											"    method: 'PUT',",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"        \"Authorization\": \"Basic <Base64Encoded(admin:password)>\"",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({",
+											"    \"firstname\": \"Mark\",",
+											"    \"lastname\": \"Jones\",",
+											"    \"totalprice\": 500,",
+											"    \"depositpaid\": true,",
+											"    \"bookingdates\": {",
+											"        \"checkin\": \"2020-09-22\",",
+											"        \"checkout\": \"2022-10-17\"",
+											"    },",
+											"    \"additionalneeds\": \"Breakfast\"",
+											"})",
+											"    }",
+											"}, function (err, res) {",
+											"    console.log(\"Response from request 2:\", res);",
+											"});",
+											"",
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response has the required fields\", function () {",
+											"    const responseData = pm.response.json();",
+											"    ",
+											"    pm.expect(responseData).to.be.an('object');",
+											"    pm.expect(responseData).to.have.property('firstname');",
+											"    pm.expect(responseData).to.have.property('lastname');",
+											"    pm.expect(responseData).to.have.property('totalprice');",
+											"    pm.expect(responseData).to.have.property('depositpaid');",
+											"    pm.expect(responseData).to.have.property('bookingdates');",
+											"    pm.expect(responseData).to.have.property('additionalneeds');",
+											"});",
+											"",
+											"",
+											"pm.test(\"Checkin and checkout dates are in a valid date format\", function () {",
+											"  const responseData = pm.response.json();",
+											"",
+											"  pm.expect(responseData.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+											"  pm.expect(responseData.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response time is within an acceptable range\", function () {",
+											"  pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response has the required fields\", function () {",
+											"  const responseData = pm.response.json();",
+											"  ",
+											"  pm.expect(responseData).to.be.an('object');",
+											"  pm.expect(responseData.firstname).to.exist;",
+											"  pm.expect(responseData.lastname).to.exist;",
+											"  pm.expect(responseData.totalprice).to.exist;",
+											"  pm.expect(responseData.depositpaid).to.exist;",
+											"  pm.expect(responseData.bookingdates).to.exist;",
+											"  pm.expect(responseData.bookingdates.checkin).to.exist;",
+											"  pm.expect(responseData.bookingdates.checkout).to.exist;",
+											"  pm.expect(responseData.additionalneeds).to.exist;",
+											"});",
+											"",
+											"",
+											"pm.test(\"Checkin and checkout dates are in a valid date format\", function () {",
+											"    const responseData = pm.response.json();",
+											"",
+											"    pm.expect(responseData.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+											"    pm.expect(responseData.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response time is within an acceptable range\", function () {",
+											"  pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Firstname should be a string\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.firstname).to.be.a('string');",
+											"});",
+											"",
+											"pm.test(\"Lastname should be a string\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.lastname).to.be.a('string');",
+											"});",
+											"",
+											"pm.test(\"Totalprice should be a number\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.totalprice).to.be.a('number');",
+											"});",
+											"",
+											"pm.test(\"Depositpaid should be a boolean\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.depositpaid).to.be.a('boolean');",
+											"});",
+											"",
+											"pm.test(\"Bookingdates should be an object\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.bookingdates).to.be.an('object');",
+											"});",
+											"",
+											"pm.test(\"Additionalneeds should be a string\", function () {",
+											"    const responseData = pm.response.json();",
+											"    pm.expect(responseData.additionalneeds).to.be.a('string');",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "password123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "{{authToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstname\": \"Mark\",\n    \"lastname\": \"Jones\",\n    \"totalprice\": 376,\n    \"depositpaid\": false,\n    \"bookingdates\": {\n        \"checkin\": \"2020-09-22\",\n        \"checkout\": \"2022-10-17\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/booking/2",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"booking",
+										"2"
+									]
+								},
+								"description": "### Documentation for Concurrent Modifications Test (Overriding Behavior)\n\n#### Test Overview\n\nThis test validates the behavior of the Restful-Booker API when concurrent requests attempt to modify the same booking resource. Specifically, it examines the effect of two simultaneous `PUT` requests that update different fields of the same booking.\n\n#### Test Environment\n\n- **Endpoint**: `/booking/{id}`\n    \n\n#### Preconditions\n\n- A booking with ID 2 exists.\n    \n\n#### Test Scenarios\n\n1. **Send Concurrent Requests**  \n    Two requests are sent to update the booking with ID 2\n    \n\n**Request 1** updates the booking to set `depositpaid` to `false      `**Request 2** attempts to update the booking to set `totalprice` to `500`\n\nThe concurrent modifications test handles simultaneous requests that modify different fields of a booking. In this case, the first request's update is maintained, while the second request's attempt to change the `totalprice` is effectively overridden."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create_New_Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Validate the booking object schema\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.booking).to.exist.and.to.be.an('object');",
+									"  pm.expect(responseData.booking.firstname).to.exist.and.to.be.a('string');",
+									"  pm.expect(responseData.booking.lastname).to.exist.and.to.be.a('string');",
+									"  pm.expect(responseData.booking.totalprice).to.exist.and.to.be.a('number');",
+									"  pm.expect(responseData.booking.depositpaid).to.exist.and.to.be.a('boolean');",
+									"  pm.expect(responseData.booking.bookingdates).to.exist.and.to.be.an('object');",
+									"  pm.expect(responseData.booking.bookingdates.checkin).to.exist.and.to.be.a('string');",
+									"  pm.expect(responseData.booking.bookingdates.checkout).to.exist.and.to.be.a('string');",
+									"  pm.expect(responseData.booking.additionalneeds).to.exist.and.to.be.a('string');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Checkin and checkout dates are in a valid date format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.booking.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"    pm.expect(responseData.booking.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"});",
+									"",
+									"",
+									"",
+									"pm.test(\"Presence of specific header Content-Type\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.exist;",
+									"});",
+									"",
+									"",
+									"",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Booking object schema is valid\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.bookingid).to.be.a('number');",
+									"  pm.expect(responseData.booking).to.be.an('object');",
+									"  pm.expect(responseData.booking.firstname).to.be.a('string');",
+									"  pm.expect(responseData.booking.lastname).to.be.a('string');",
+									"  pm.expect(responseData.booking.totalprice).to.be.a('number');",
+									"  pm.expect(responseData.booking.depositpaid).to.be.a('boolean');",
+									"  pm.expect(responseData.booking.bookingdates).to.be.an('object');",
+									"  pm.expect(responseData.booking.bookingdates.checkin).to.be.a('string');",
+									"  pm.expect(responseData.booking.bookingdates.checkout).to.be.a('string');",
+									"  pm.expect(responseData.booking.additionalneeds).to.be.a('string');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Checkin and checkout dates are in a valid date format\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.booking.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"  pm.expect(responseData.booking.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"});",
+									"// Parse the JSON response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Save the bookingid to an environment variable",
+									"pm.environment.set(\"bookingId\", jsonData.bookingid);",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstname\": \"Angela\",\n  \"lastname\": \"Adisa\",\n  \"totalprice\": 50,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n      \"checkin\": \"2024-12-06\",\n      \"checkout\": \"2024-12-10\"\n  },\n  \"additionalneeds\": \"Lunch\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						},
+						"description": "### POST /booking\n\nThis endpoint is used to create a new booking.\n\n#### Request Body\n\n- **firstname** (string, required): The first name of the guest.\n    \n- **lastname** (string, required): The last name of the guest.\n    \n- **totalprice** (number, required): The total price of the booking.\n    \n- **depositpaid** (boolean, required): Indicates if the deposit is paid.\n    \n- **bookingdates** (object, required): The check-in and check-out dates for the booking.\n    \n    - **checkin** (string, required): The check-in date in the format 'YYYY-MM-DD'.\n        \n    - **checkout** (string, required): The check-out date in the format 'YYYY-MM-DD'.\n        \n- **additionalneeds** (string, required): Any additional needs or requests for the booking.\n    \n\n#### Response\n\nThe response is in JSON format and follows the schema below:\n\n``` json\n{\n    \"bookingid\": 2186,\n    \"booking\": {\n        \"firstname\": \"Angela\",\n        \"lastname\": \"Adisa\",\n        \"totalprice\": 50,\n        \"depositpaid\": true,\n        \"bookingdates\": {\n            \"checkin\": \"2024-12-06\",\n            \"checkout\": \"2024-12-10\"\n        },\n        \"additionalneeds\": \"Lunch\"\n    }\n}\n\n ```\n\nThe response includes the booking ID and the details of the created booking. The values for the guest's name, total price, and booking dates will be populated based on the request data."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve_Booking_Details & ResponseTime",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"GET request response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('firstname');",
+									"    pm.expect(responseData).to.have.property('lastname');",
+									"    pm.expect(responseData).to.have.property('totalprice');",
+									"    pm.expect(responseData).to.have.property('depositpaid');",
+									"    pm.expect(responseData).to.have.property('bookingdates');",
+									"    pm.expect(responseData).to.have.property('additionalneeds');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Checkin and checkout dates are in valid date format\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.bookingdates.checkin).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"    pm.expect(responseData.bookingdates.checkout).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Depositpaid is a boolean value\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData.depositpaid).to.be.a('boolean');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/booking/195",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"195"
+							]
+						},
+						"description": "### Get Booking Details\n\nThis endpoint retrieves the details of a specific booking identified by the booking ID.\n\n#### Request\n\n- Method: GET\n    \n- URL: `{{baseURL}}/booking/195`\n    \n\n#### Response\n\n- Status: 200\n    \n- Headers:\n    \n    - Content-Type: application/json\n        \n- { \"firstname\": \"Angela\", \"lastname\": \"Adisa\", \"totalprice\": 50, \"depositpaid\": true, \"bookingdates\": { \"checkin\": \"2024-12-06\", \"checkout\": \"2024-12-10\" }, \"additionalneeds\": \"Lunch\"}\n    \n\nThis response contains the booking details including the first name, last name, total price, deposit paid status, booking dates, and additional needs.\n\n### Performance Test Documentation for `GET /booking/{id}`\n\n**Test**: Response time for `GET /booking/{id}` endpoint should be less than 200ms.\n\n- **Request**: `GET /booking/{id}`\n    \n- **Expected Result**: The response time should be less than 200ms.\n    \n\n**Actual Result**:\n\n- **Response Time**: 278ms\n    \n- **Status**: ❌ Test Failed\n    \n\n**Failure Details**:\n\n- **Assertion Error**: `AssertionError: expected 278 to be below 200`\n    \n- This indicates that the response time for retrieving booking details is slower than the target threshold of 200ms, which may indicate room for optimization in server response."
+					},
+					"response": []
+				},
+				{
+					"name": "Update_existing_bookings & ResponseTime",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains updated details\", function () {",
+									"  let responseData = pm.response.json();",
+									"  pm.expect(responseData.firstname).to.eql(\"Angela\");",
+									"  pm.expect(responseData.lastname).to.eql(\"Ambenge\");",
+									"  pm.expect(responseData.totalprice).to.eql(50);",
+									"  pm.expect(responseData.depositpaid).to.eql(true);",
+									"  pm.expect(responseData.bookingdates.checkin).to.eql(\"2024-12-06\");",
+									"  pm.expect(responseData.bookingdates.checkout).to.eql(\"2024-12-10\");",
+									"  pm.expect(responseData.additionalneeds).to.eql(\"Lunch\");",
+									"});",
+									"pm.test(\"PUT request response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log(\"Auth Token:\", pm.environment.get(\"authToken\"));",
+									"console.log(\"Booking ID:\", pm.environment.get(\"bookingId\"));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "token={{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstname\": \"Angela\",\n  \"lastname\": \"Ambenge\",\n  \"totalprice\": 50,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n      \"checkin\": \"2024-12-06\",\n      \"checkout\": \"2024-12-10\"\n  },\n  \"additionalneeds\": \"Lunch\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingId}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						},
+						"description": "### Updated Information Verification - Test Documentation\n\n#### Description\n\nThis test verifies that the API correctly returns the updated details in the response body after a successful update operation. The expected behavior is for the API to return a `200 OK` status along with the updated resource details.\n\n#### Test Case: Verify Updated Details in Response Body\n\n- **Objective**: Ensure that the response body contains the updated information after a successful update request.\n    \n- **Request Type**: `PUT`\n    \n- **Endpoint**: `/booking/{id}` (or the relevant endpoint for the resource being updated)\n    \n\n#### Request Example\n\n- **Request Type**: `PUT`\n    \n- **Endpoint**: `/booking/{id}` (replace `{id}` with the actual booking ID being updated)\n    \n\n#### Response\n\n{  \n\"firstname\": \"Angela\",  \n\"lastname\": \"Ambenge\",  \n\"totalprice\": 50,  \n\"depositpaid\": true,  \n\"bookingdates\": {  \n\"checkin\": \"2024-12-06\",  \n\"checkout\": \"2024-12-10\"  \n},  \n\"additionalneeds\": \"Lunch\"  \n}\n\nThe response contains the updated details of the booking\n\n**Authorization** Basic Auth\n\nUsername\n\nPassword\n\n**Request Headers**\n\nCookie token={{authToken}\n\n### Performance Test Documentation for `PUT /booking/{id}`\n\n**Test**: Response time for `PUT /booking/{id}` endpoint should be less than 500ms.\n\n- **Request**: `PUT /booking/{id}`\n    \n- **Expected Result**: The response time should be less than 500ms.\n    \n\n**Actual Result**:\n\n- **Response Time**: Passed (response time was below 500ms)\n    \n- **Status**: ✅ Test Passed"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete_booking & ResponseTime",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {",
+									"  pm.expect(pm.response.to.have.status(201));",
+									"});",
+									"",
+									"",
+									"",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.exist;",
+									"    pm.expect(pm.response.text()).to.include(\"Created\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content is in a valid format\", function () {",
+									"    pm.expect(pm.response.text()).to.be.a('string');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingId}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						},
+						"description": "### Delete Operation - Test Documentation\n\n#### Description\n\nThis test verifies the API's behavior when a delete request is made to remove a specific resource. The expected behavior is for the API to return a `201 Created` status, indicating successful deletion.\n\n#### Test Case: Successful Delete Operation\n\n- **Objective**: Ensure that the API responds correctly after successfully deleting a resource.\n    \n- **Request Type**: `DELETE`\n    \n- **Endpoint**: `/booking/{id}` (or the relevant endpoint for the resource being deleted)\n    \n\n#### Request Example\n\n- **Request Type**: `DELETE`\n    \n- **Endpoint**: `/booking/{id}` (replace `{id}` with the actual ID of the booking to be deleted)\n    \n\n#### Expected Response\n\nUpon sending the delete request successfully, the API should return:\n\n- **Status Code**: `201 Created`\n    \n- **Response Body**: The response body should be empty, indicating successful deletion.\n    \n\n**Authorization** Basic Auth\n\nUsername\n\nPassword\n\n**Request Headers**\n\nCookie token={{authToken}}\n\n### Performance Test Documentation for `DELETE /booking/{id}`\n\n**Test**: Response time for `DELETE /booking/{id}` endpoint should be less than 500ms.\n\n- **Request**: `DELETE /booking/{id}`\n    \n- **Expected Result**: The response time should be less than 500ms.\n    \n\n**Actual Result**:\n\n- **Response Time**: Passed (response time was below 500ms)\n    \n- **Status**: ✅ Test Passed"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Handling",
+			"item": [
+				{
+					"name": "Invalid_input_data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"pm.test(\"Error message for invalid totalprice\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.message).to.eql(\"totalprice must be a number\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstname\": \"Onzere\",\n  \"lastname\": \"Collins\",\n  \"totalprice\": \"fifty\",\n  \"depositpaid\": true,\n  \"bookingdates\": {\n      \"checkin\": \"2024-12-06\",\n      \"checkout\": \"2024-12-10\"\n  },\n  \"additionalneeds\": \"Lunch\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						},
+						"description": "### Invalid Input Data - Test Documentation\n\n#### Description\n\nThis test verifies the API’s handling of invalid data in a booking creation request, specifically checking that the API returns an appropriate error message and status code for incorrect data types.\n\n#### Test Case: Invalid `totalprice` Data Type\n\n- **Objective**: Verify the API's response when `totalprice` is provided as a string instead of an integer.\n    \n- **Request Type**: POST\n    \n- **Endpoint**: `/booking`\n    \n\n**Explanation**: In this request, `\"totalprice\"` should be an integer (e.g., `50`), but it’s incorrectly given as a string (`\"fifty\"`). This invalid data type is expected to cause an error.\n\n**Expected Response**\n\n{  \n\"status\": 400,  \n\"error\": \"Bad Request\",  \n\"message\": \"totalprice must be a number\"  \n}"
+					},
+					"response": []
+				},
+				{
+					"name": "Non_existent_resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 404\", function () {",
+									"    pm.expect(pm.response.code).to.equal(404);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response Content-Type is text/plain\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/plain\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is within an acceptable range\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.lessThan(1000);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body schema matches the expected schema\", function () {",
+									"    pm.expect(pm.response.text()).to.equal(\"Not Found\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingId}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						},
+						"description": "### Non-Existent Resource After Deletion - Test Documentation\n\n#### Description\n\nThis test verifies the API’s behavior when attempting to retrieve a booking that has been deleted. After successfully deleting a specific booking ID, any subsequent request to retrieve this booking should return a `404 Not Found` response, indicating that the resource no longer exists.\n\n#### Test Case: Retrieve Deleted Booking\n\n- **Objective**: Confirm that the API responds with a `404 Not Found` when trying to access a booking that was previously deleted.\n    \n- **Request Types**: `DELETE` followed by `GET`\n    \n- **Endpoint**: `/booking/{id}` (where `{id}` is the ID of the booking that was deleted)\n    \n\n#### Steps\n\n1. **Delete the Booking**:\n    \n    - Perform a `DELETE` request on a specific booking ID (e.g., `/booking/101`).\n        \n    - Confirm that the response indicates successful deletion (`201 Created` ).\n        \n2. **Attempt to Retrieve the Deleted Booking**:\n    \n    - Send a `GET` request to `/booking/101` (the same ID just deleted).\n        \n    - Verify that the API returns a `404 Not Found` response.\n        \n\n#### Request Example\n\n1. **Delete Request**:\n    \n    - **Endpoint**: `DELETE /booking/101`\n        \n2. **Retrieve Deleted Booking**:\n    \n    - **Endpoint**: `GET /booking/101`\n        \n\n#### Expected Response\n\nUpon attempting to retrieve the deleted booking, the API should return the following\n\n{  \n\"status\": 404,  \n\"error\": \"Not Found\",  \n}"
+					},
+					"response": []
+				},
+				{
+					"name": "Unauthorized_access",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 403\", function () {",
+									"    pm.expect(pm.response.code).to.equal(403);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response content type is text/plain\", function () {",
+									"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/plain\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body matches the expected schema for a 403 status code\", function () {",
+									"    pm.expect(pm.response.code).to.equal(403);",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.equal(\"text/plain\");",
+									"",
+									"    const expectedResponseBody = \"Forbidden\";",
+									"    pm.expect(pm.response.text()).to.equal(expectedResponseBody);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"Nathan\",\n    \"lastname\": \"Ayuma\",\n    \"totalprice\": 674,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2023-08-15\",\n        \"checkout\": \"2023-11-08\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"1"
+							]
+						},
+						"description": "### Testing Unauthorized Access Documentation\n\n**Objective**: To verify that the Restful-Booker API correctly handles unauthorized access attempts when trying to update a booking without valid authorization credentials.\n\n#### Test Case: PUT /booking/{id} (Unauthorized Access)\n\n**Endpoint**: `PUT {{baseURL}}/booking/1`  \n**Request Body**:\n\n{  \n\"firstname\": \"Nathan\",  \n\"lastname\": \"Ayuma\",  \n\"totalprice\": 674,  \n\"depositpaid\": true,  \n\"bookingdates\": {  \n\"checkin\": \"2023-08-15\",  \n\"checkout\": \"2023-11-08\"  \n},  \n\"additionalneeds\": \"Breakfast\"  \n}  \n  \n**Authorization**:\n\n- **Type**: Basic Auth\n    \n- **Expected**: Valid credentials ( `admin:password`) must be provided.\n    \n\n**Expected Response**:\n\n- Status Code: `403 Forbidden`\n    \n- Reason: The request should be rejected due to missing authorization credentials."
+					},
+					"response": []
+				},
+				{
+					"name": "Malformed_Requests",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstname\": \"Angela\",\n  \"lastname\": \"Adisa\",\n  \"totalprice\": 50,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n      \"checkin\": \"\",\n      \"checkout\": \"2024-12-10\"\n  },\n  \"additionalneeds\": \"Lunch\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						},
+						"description": "### Malformed Request - Test Documentation\n\n#### Description\n\nThis test verifies the API’s behavior when a request is made with missing required fields, particularly focusing on the check-in date. The expected behavior is for the API to return the booking ID with a malformed check-in date while still reflecting the other provided details.\n\n#### Test Case: Malformed Request Missing Check-in Date\n\n- **Objective**: Ensure that the API handles requests with missing required fields appropriately and returns the details of the booking, even with malformed data.\n    \n- **Request Type**: `POST`\n    \n- **Endpoint**: `/booking`\n    \n\n**Request Body**\n\n{  \n\"firstname\": \"Angela\",  \n\"lastname\": \"Adisa\",  \n\"totalprice\": 50,  \n\"depositpaid\": true,  \n\"bookingdates\": {  \n\"checkin\": \"\",  \n\"checkout\": \"2024-12-10\"  \n},  \n\"additionalneeds\": \"Lunch\"  \n}\n\n**Expected Response**\n\nUpon sending the request with the malformed input, the API should return:\n\n- **Status Code**: (`400 Bad Request` is expected, but based it returns `200 OK`)\n    \n\n\\*_Response Body__\\*_{  \n\"bookingid\": 3198,  \n\"booking\": {  \n\"firstname\": \"Angela\",  \n\"lastname\": \"\",  \n\"totalprice\": 50,  \n\"depositpaid\": true,  \n\"bookingdates\": {  \n\"checkin\": \"0NaN-aN-aN\",  \n\"checkout\": \"2024-12-10\"  \n},  \n\"additionalneeds\": \"Lunch\"  \n}  \n}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Concurrent_requests",
+			"item": [
+				{
+					"name": "Test 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const concurrentRequests = 5; ",
+									"const delayTime = 50;  ",
+									"",
+									"for (let i = 0; i < concurrentRequests; i++) {",
+									"    setTimeout(() => {",
+									"        pm.sendRequest({",
+									"            url: \"https://restful-booker.herokuapp.com/booking\",",
+									"            method: \"POST\",",
+									"            header: {",
+									"                \"Content-Type\": \"application/json\"",
+									"            },",
+									"            body: {",
+									"                mode: 'raw',",
+									"                raw: JSON.stringify({",
+									"                    firstname: \"Mike\",",
+									"                    lastname: \"Swahili\",",
+									"                    totalprice: 111,",
+									"                    depositpaid: true,",
+									"                    bookingdates: {",
+									"                        checkin: \"2018-01-01\",",
+									"                        checkout: \"2024-01-01\"",
+									"                    },",
+									"                    additionalneeds: \"Breakfast\"",
+									"                })",
+									"            }",
+									"        }, function (err, res) {",
+									"            if (err) {",
+									"                console.log(`Request #${i} failed: `, err);",
+									"            } else {",
+									"                console.log(`Request #${i} succeeded: Response time - ${res.responseTime} ms, Status - ${res.status}`);",
+									"            }",
+									"        });",
+									"    }, i * delayTime); ",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"Mike\",\n    \"lastname\": \"Swahili\",\n    \"totalprice\": 111,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2018-01-01\",\n        \"checkout\": \"2019-01-01\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								""
+							]
+						},
+						"description": "### Performance Test Documentation for Concurrent Requests\n\n**Objective**: Test the Restful-Booker API's ability to handle concurrent requests to simulate multiple users accessing the service simultaneously.\n\n**Test Scenarios**:\n\n1. **Endpoint Tested**:\n    \n    - `POST /booking` (Creating a booking)\n        \n2. **Number of Concurrent Requests**: 5\n    \n3. **Delay Time Between Requests**: 50 milliseconds\n    \n4. **Expected Behavior**:\n    \n    - All requests should succeed without errors.\n        \n    - Response times should be within acceptable limits (e.g., less than 500ms).\n        \n    - No rate-limiting errors (e.g., HTTP 429) or server errors (e.g., HTTP 500) should occur.\n        \n\n**Implementation**:\n\n- **Method**: Using Postman’s `pm.sendRequest` function to send 5 concurrent requests to `POST /booking` with a delay of 50ms between each.\n    \n\n**Success**:\n\n- All concurrent requests were successfully processed by the API.\n    \n- Response times were within the acceptable threshold .\n    \n- No rate-limiting or server errors encountered."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rate_Limiting_Behavior",
+			"item": [
+				{
+					"name": "POST_limiting",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const maxRequests = 100;  ",
+									"const delayBetweenRequests = 100;  ",
+									"",
+									"for (let i = 0; i < maxRequests; i++) {",
+									"    setTimeout(() => {",
+									"        pm.sendRequest({",
+									"            url: \"https://restful-booker.herokuapp.com/booking\",",
+									"            method: \"POST\",",
+									"            header: {",
+									"                \"Content-Type\": \"application/json\"",
+									"            },",
+									"            body: {",
+									"                mode: 'raw',",
+									"                raw: JSON.stringify({",
+									"                    firstname: \"Rate\",",
+									"                    lastname: \"Limit\",",
+									"                    totalprice: 123,",
+									"                    depositpaid: true,",
+									"                    bookingdates: {",
+									"                        checkin: \"2024-12-01\",",
+									"                        checkout: \"2024-12-10\"",
+									"                    },",
+									"                    additionalneeds: \"Breakfast\"",
+									"                })",
+									"            }",
+									"        }, function (err, res) {",
+									"            if (err) {",
+									"                console.log(`Request #${i} failed: `, err);",
+									"            } else {",
+									"                console.log(`Request #${i} Response: ${res.status}, Response time: ${res.responseTime} ms`);",
+									"                if (res.status === 429) {  // limit check",
+									"                    console.log(\"Rate limit reached!\");",
+									"                }",
+									"            }",
+									"        });",
+									"    }, i * delayBetweenRequests);",
+									"}",
+									"pm.variables.get(\"variable_key\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is within an acceptable range\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Validate the booking object schema\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.booking).to.have.property('firstname').that.is.a('string');",
+									"    pm.expect(responseData.booking).to.have.property('lastname').that.is.a('string');",
+									"    pm.expect(responseData.booking).to.have.property('totalprice').that.is.a('number');",
+									"    pm.expect(responseData.booking).to.have.property('depositpaid').that.is.a('boolean');",
+									"    pm.expect(responseData.booking).to.have.property('bookingdates').that.is.an('object');",
+									"    pm.expect(responseData.booking).to.have.property('additionalneeds').that.is.a('string');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstname\": \"Emmy\",\n  \"lastname\": \"Karegi\",\n  \"totalprice\": 50,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n      \"checkin\": \"2024-12-06\",\n      \"checkout\": \"2024-12-10\"\n  },\n  \"additionalneeds\": \"Lunch\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						},
+						"description": "### Rate Limiting Behavior Test Documentation\n\n**Objective**: To evaluate how the Restful-Booker API manages multiple simultaneous requests and its ability to handle a high volume of requests without exceeding rate limits.\n\n**Test Details**:\n\n- **Endpoint Tested**: `POST /booking`\n    \n- **Total Requests Sent**: 100\n    \n- **Delay Between Requests**: 100 milliseconds\n    \n- **Expected Behavior**:\n    \n    - All requests should be processed without encountering rate limiting errors (HTTP status code 429).\n        \n    - Response times should vary but remain within acceptable limits, demonstrating the server's capacity to handle multiple requests efficiently.\n        \n\n**Results**:\n\n- **Total Requests Sent**: 100\n    \n- **Responses**: All requests were successfully processed, returning a status code of 200 (OK).\n    \n- **Response Times**: The response times varied, indicating different processing times for each request, but no requests encountered a rate limit error.\n    \n    **Sample Response Times**:\n    \n    - Request 1: 4.20 ms\n        \n    - Request 2: 4.26 ms\n        \n    - Request 4.17 ms\n        \n    - ...\n        \n    - Request 100: 357 ms\n        \n\n**Observations**:\n\n- The API effectively handled the volume of requests without triggering rate limiting, indicating robust performance under load.\n    \n- Variability in response times suggests that while the server is capable of handling multiple requests, processing times may fluctuate based on server load and other factors."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "https://restful-booker.herokuapp.com",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
